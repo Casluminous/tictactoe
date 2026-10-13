@@ -1,4 +1,4 @@
-# Bài 8 - Cờ caro 3×3 (Tic-Tac-Toe) bằng pygame
+﻿# Bài 8 - Cờ caro 3×3 (Tic-Tac-Toe) bằng pygame
 
 Game cờ caro 3×3 cho hai người chơi trên cùng máy, viết bằng pygame, **không dùng bất kỳ file asset nào** (không ảnh, không font tải ngoài).
 
@@ -48,11 +48,12 @@ uv pip install --python .venv\Scripts\python.exe -r requirements.txt
 
 ## Giao diện
 
-- Giao diện nền trắng, mọi khung (thẻ người chơi, nút bấm, vùng rê chuột) đều là hình chữ nhật vuông góc.
-- Hai thẻ người chơi ở đầu màn hình, thẻ của người đang đến lượt được viền sáng màu của họ, thẻ còn lại mờ đi.
-- Mỗi bên có bộ đếm số trận thắng, số ván hòa hiển thị giữa hai thẻ. Bấm **Chơi lại** không mất điểm, muốn xóa hẳn thì bấm **Xóa điểm**.
-- Khi có người thắng, đường thắng được tô sáng màu xanh lá và dòng thông báo đổi màu tương ứng.
-- Chữ dùng `pygame.font.SysFont` lấy font sẵn có của hệ điều hành (Segoe UI), vì font mặc định của pygame không có dấu tiếng Việt. Không phải tệp asset nào được tải kèm.
+Bố cục lấy theo mẫu tham khảo: nền vàng, khung màn hình trắng viền đen có thanh tiêu đề ba chấm, chữ in hoa đậm (Segoe UI Black), nút chanh nhạt có đổ bóng.
+
+- Hai thẻ người chơi ở đầu màn hình: người đang đến lượt có nền đen chữ vàng, người kia nền trắng chữ xám.
+- Mỗi bên đếm số trận thắng, số ván hòa hiển thị dưới tiêu đề. Bấm **Chơi lại** không mất điểm, muốn xóa hẳn thì bấm **Xóa điểm**.
+- Khi có người thắng, đường thắng được vẽ đậm và nét liền qua ba ô.
+- Chữ dùng `pygame.font.SysFont` lấy font có sẵn của hệ điều hành, vì font mặc định của pygame không có dấu tiếng Việt. Không phải tệp asset nào được tải kèm.
 
 ## Cách làm (rút gọn)
 

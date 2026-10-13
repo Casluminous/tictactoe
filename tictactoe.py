@@ -19,41 +19,52 @@ CELL = 150
 BOARD_PX = BOARD_SIZE * CELL
 
 WINDOW_W = 640
-WINDOW_H = 760
+WINDOW_H = 780
 BOARD_X = (WINDOW_W - BOARD_PX) // 2
-BOARD_Y = 132
-LINE_W = 6
+BOARD_Y = 156
+LINE_W = 7
 
-PANEL_H = 104
-PANEL_Y = 14
-PANEL_W = 280
+# Khung "màn hình" trắng, các nút nằm ngoài khung trên nền vàng
+SCREEN = pygame.Rect(16, 14, WINDOW_W - 32, 692)
+TITLE_H = 32
+CARD_W, CARD_H = 284, 92
+CARD_Y = 56
+CARD_X_LEFT, CARD_X_RIGHT = 30, 326
 
-STATUS_Y = BOARD_Y + BOARD_PX + 26
-BTN_Y = STATUS_Y + 84
-BTN_H = 48
+STATUS_Y = 638
+BTN_Y = 712
+BTN_H = 58
 BTN_W = 200
-BTN2_W = 150
+BTN2_W = 172
 BTN_GAP = 16
 BTN_X = (WINDOW_W - (BTN_W + BTN_GAP + BTN2_W)) // 2
 
-BG_COLOR = (247, 249, 252)
-PANEL_COLOR = (233, 238, 245)
-PANEL_ACTIVE = (214, 227, 244)
-GRID_COLOR = (150, 163, 182)
-HOVER_COLOR = (223, 232, 245)
-WIN_COLOR = (22, 150, 92)
-TEXT_COLOR = (28, 38, 54)
-DIM_TEXT = (118, 130, 148)
-EDGE_DIM = (186, 195, 209)
+# Bảng màu lấy theo mẫu: nền vàng, màn hình trắng, chữ đen đậm
+BG_COLOR = (241, 233, 76)
+SCREEN_COLOR = (255, 255, 255)
+INK = (23, 23, 42)
+CARD_COLOR = (255, 255, 255)
+CARD_ACTIVE = INK
+CARD_DIM = (104, 112, 130)
+GRID_COLOR = INK
+HOVER_COLOR = (250, 249, 205)
+WIN_COLOR = INK
+TEXT_COLOR = INK
+DIM_TEXT = (104, 112, 130)
 
-X_COLOR = (37, 99, 235)
-O_COLOR = (217, 96, 16)
+BTN_COLOR = (214, 226, 0)
+BTN_HOVER = (176, 188, 0)
+BTN_TEXT = INK
+SHADOW_COLOR = (23, 23, 42)
+
+X_COLOR = INK
+O_COLOR = (198, 40, 62)
 
 EMPTY = ""
 X = "X"
 O = "O"
 
-PLAYER_LABEL = {X: "Người 1", O: "Người 2"}
+PLAYER_LABEL = {X: "NGƯỜI 1", O: "NGƯỜI 2"}
 PLAYER_COLOR = {X: X_COLOR, O: O_COLOR}
 
 WIN_LINES = (
@@ -68,6 +79,7 @@ WIN_LINES = (
 )
 
 FONT_NAMES = "segoeui, arial, verdana, dejavusans, tahoma, sans"
+FONT_BOLD = "seguiblack, segoe ui black, arial black, segoeui, arial, sans"
 
 
 # ------------------------------------------------------------------ logic
@@ -137,20 +149,20 @@ class TicTacToe:
         pygame.display.set_caption("Bài 8 - Tic-Tac-Toe 3x3 (pygame)")
         self.screen = pygame.display.set_mode((WINDOW_W, WINDOW_H))
         self.fonts = {
-            "status": self._font(44),
-            "panel": self._font(26),
-            "score": self._font(32),
-            "button": self._font(30),
-            "hint": self._font(22),
+            "status": self._font(36, FONT_BOLD),
+            "panel": self._font(24, FONT_BOLD),
+            "score": self._font(28, FONT_BOLD),
+            "button": self._font(20, FONT_BOLD),
+            "hint": self._font(18),
         }
         self.btn_play = pygame.Rect(BTN_X, BTN_Y, BTN_W, BTN_H)
         self.btn_clear = pygame.Rect(BTN_X + BTN_W + BTN_GAP, BTN_Y, BTN2_W, BTN_H)
         self.reset_scores()
 
     @staticmethod
-    def _font(size: int) -> pygame.font.Font:
+    def _font(size: int, names: str = FONT_NAMES) -> pygame.font.Font:
         """Font hệ thống (hỗ trợ tiếng Việt); thiếu thì lùi về font mặc định."""
-        font = pygame.font.SysFont(FONT_NAMES, size)
+        font = pygame.font.SysFont(names, size, bold=True)
         return font or pygame.font.Font(None, size)
 
     # ------------------------------------------------ trạng thái
@@ -171,10 +183,10 @@ class TicTacToe:
 
     def status(self) -> str:
         if self.winner:
-            return f"{self.winner} thắng!"
+            return f"{self.winner} THẮNG!"
         if self.over:
-            return "Hòa rồi!"
-        return f"Lượt: {self.player}"
+            return "HÒA RỒI!"
+        return f"LƯỢT: {self.player}"
 
     # ------------------------------------------------ sự kiện
     def handle_event(self, event: pygame.event.Event) -> bool:
@@ -237,29 +249,42 @@ class TicTacToe:
         self.screen.blit(surface, surface.get_rect(midleft=pos))
 
     def _panel(self, mark: str, rect: pygame.Rect, is_active: bool) -> None:
-        color = PLAYER_COLOR[mark]
-        pygame.draw.rect(self.screen, PANEL_ACTIVE if is_active else PANEL_COLOR, rect)
-        pygame.draw.rect(self.screen, color if is_active else EDGE_DIM, rect,
-                         width=3 if is_active else 2)
-        draw_mark(self.screen, (rect.x + 50, rect.centery), mark, color, 26, 5)
-        self._text_left("panel", PLAYER_LABEL[mark], TEXT_COLOR if is_active else DIM_TEXT,
-                     (rect.x + 96, rect.y + 30))
-        self._text_left("score", f"{self.wins[mark]} thắng", color if is_active else DIM_TEXT,
-                     (rect.x + 96, rect.y + 72))
+        pygame.draw.rect(self.screen, CARD_ACTIVE if is_active else CARD_COLOR, rect)
+        pygame.draw.rect(self.screen, INK, rect, width=3 if is_active else 2)
+        mark_color = BG_COLOR if is_active else PLAYER_COLOR[mark]
+        draw_mark(self.screen, (rect.x + 48, rect.centery), mark, mark_color, 26, 6)
+        self._text_left("panel", PLAYER_LABEL[mark], BG_COLOR if is_active else INK,
+                     (rect.x + 92, rect.y + 30))
+        self._text_left("score", f"{self.wins[mark]} THẮNG", mark_color if is_active else DIM_TEXT,
+                     (rect.x + 92, rect.y + 68))
 
     def _button(self, rect: pygame.Rect, label: str) -> None:
         is_hover = rect == self.hover_button
-        pygame.draw.rect(self.screen, (222, 232, 246) if is_hover else (236, 241, 247), rect)
-        pygame.draw.rect(self.screen, TEXT_COLOR if is_hover else EDGE_DIM, rect, width=2)
-        self._text("button", label, TEXT_COLOR if is_hover else DIM_TEXT, rect.center)
+        shadow = rect.move(4, 4)  # đổ bông như trong mau
+        pygame.draw.rect(self.screen, SHADOW_COLOR, shadow)
+        pygame.draw.rect(self.screen, BTN_HOVER if is_hover else BTN_COLOR, rect)
+        pygame.draw.rect(self.screen, INK, rect, width=3)
+        self._text("button", label, BTN_TEXT, rect.center)
+
+    def _screen_frame(self) -> None:
+        """Khung trắng giống khung cửa sổ trong mẫu: viền đen + thanh 3 chấm."""
+        pygame.draw.rect(self.screen, SCREEN_COLOR, SCREEN)
+        pygame.draw.rect(self.screen, INK, SCREEN, width=3)
+        pygame.draw.line(self.screen, INK, (SCREEN.x, SCREEN.y + TITLE_H),
+                         (SCREEN.right, SCREEN.y + TITLE_H), 3)
+        cy = SCREEN.y + TITLE_H // 2
+        for index, color in enumerate(((241, 233, 76), (255, 255, 255), (176, 188, 0))):
+            pygame.draw.circle(self.screen, color, (SCREEN.x + 18 + index * 20, cy), 6)
+            pygame.draw.circle(self.screen, INK, (SCREEN.x + 18 + index * 20, cy), 6, 2)
 
     def draw(self) -> None:
         self.screen.fill(BG_COLOR)
+        self._screen_frame()
 
-        left = pygame.Rect(16, PANEL_Y, PANEL_W, PANEL_H)
-        right = pygame.Rect(WINDOW_W - 16 - PANEL_W, PANEL_Y, PANEL_W, PANEL_H)
-        self._panel(X, left, self.player == X and not self.over)
-        self._panel(O, right, self.player == O and not self.over)
+        self._panel(X, pygame.Rect(CARD_X_LEFT, CARD_Y, CARD_W, CARD_H),
+                    self.player == X and not self.over)
+        self._panel(O, pygame.Rect(CARD_X_RIGHT, CARD_Y, CARD_W, CARD_H),
+                    self.player == O and not self.over)
 
         if self.hover and not self.over and self.board[self.hover[0]][self.hover[1]] == EMPTY:
             pygame.draw.rect(self.screen, HOVER_COLOR, cell_rect(*self.hover))
@@ -281,12 +306,11 @@ class TicTacToe:
         if self.win_line:
             draw_win_line(self.screen, self.win_line)
 
-        self._text("status", self.status(),
-                   WIN_COLOR if self.over else TEXT_COLOR, (WINDOW_W // 2, STATUS_Y))
-        self._text("hint", f"Hòa: {self.draws}    •    R: chơi lại    •    ESC: thoát",
+        self._text("status", self.status(), INK, (WINDOW_W // 2, STATUS_Y))
+        self._text("hint", f"HÒA {self.draws}   •   R: CHƠI LẠI   •   ESC: THOÁT",
                    DIM_TEXT, (WINDOW_W // 2, STATUS_Y + 48))
-        self._button(self.btn_play, "Chơi lại")
-        self._button(self.btn_clear, "Xóa điểm")
+        self._button(self.btn_play, "CHƠI LẠI")
+        self._button(self.btn_clear, "XÓA ĐIỂM")
         pygame.display.flip()
 
 

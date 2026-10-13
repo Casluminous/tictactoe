@@ -72,7 +72,7 @@ def check_flow() -> None:
     # Vòng 1: X thắng hàng ngang trên cùng
     play_moves(game, [(1, 1), (0, 1), (2, 1), (0, 2)])
     assert game.over and game.winner == ttt.X
-    assert game.win_line == ((0, 0), (0, 1), (0, 2)) and game.status() == "X thắng!"
+    assert game.win_line == ((0, 0), (0, 1), (0, 2)) and game.status() == "X THẮNG!"
     assert game.wins[ttt.X] == 1 and game.wins[ttt.O] == 0 and game.draws == 0
 
     play_moves(game, [(2, 2)])  # ván đã xong -> khoá bàn
@@ -95,7 +95,7 @@ def check_flow() -> None:
 
     # Vòng hòa: X O X / X O O / O X X
     play_moves(game, [(0, 0), (0, 1), (0, 2), (1, 1), (1, 0), (1, 2), (2, 1), (2, 0), (2, 2)])
-    assert game.over and game.winner == ttt.EMPTY and game.status() == "Hòa rồi!"
+    assert game.over and game.winner == ttt.EMPTY and game.status() == "HÒA RỒI!"
     assert game.draws == 1 and game.wins[ttt.X] == 2
 
     # Nút "Xóa điểm" xoá cả điểm lẫn ván đang chơi
