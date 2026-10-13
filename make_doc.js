@@ -1,5 +1,6 @@
-// Sinh 2 file Word cho báo cáo: TFTP và bài 8 (Tic-Tac-Toe bằng pygame).
-// Chạy:  node make_docs.js
+// Sinh file Word bao cao bai 8: Muc tieu -> Cach lam -> Thanh phan chinh.
+// Moi muc deu kem doan code rut ngan va chi ro nam o file nao.
+// Chay:  node make_doc.js
 const fs = require("fs");
 const path = require("path");
 const {
@@ -9,8 +10,8 @@ const {
 } = require("docx");
 
 const OUT = path.join(__dirname, "docs");
-const PAGE = { width: 11906, height: 16838 };           // A4
-const CONTENT = PAGE.width - 1440 * 2;                  // 9026 DXA
+const PAGE = { width: 11906, height: 16838 };
+const CONTENT = PAGE.width - 1440 * 2;
 const ACCENT = "1F4E79";
 const CODE_BG = "F4F6F8";
 
@@ -21,19 +22,18 @@ const cellMargins = { top: 80, bottom: 80, left: 120, right: 120 };
 // ------------------------------------------------------------------ helpers
 const h1 = (text) => new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun(text)] });
 const h2 = (text) => new Paragraph({ heading: HeadingLevel.HEADING_2, children: [new TextRun(text)] });
-const h3 = (text) => new Paragraph({ heading: HeadingLevel.HEADING_3, children: [new TextRun(text)] });
 const p = (text, opts = {}) => new Paragraph({
   spacing: { after: 120 },
-  children: [new TextRun({ text, bold: opts.bold, italics: opts.italics, color: opts.color, size: opts.size })],
+  children: [new TextRun({ text, bold: opts.bold, italics: opts.italics, color: opts.color })],
 });
-const bullet = (text, level = 0) => new Paragraph({
-  numbering: { reference: "bullets", level },
+const bullet = (text) => new Paragraph({
+  numbering: { reference: "bullets", level: 0 },
   spacing: { after: 60 },
   children: [new TextRun(text)],
 });
 const numbered = (text) => new Paragraph({
   numbering: { reference: "numbers", level: 0 },
-  spacing: { after: 60 },
+  spacing: { after: 80 },
   children: [new TextRun(text)],
 });
 const code = (lines) => lines.map((line) => new Paragraph({
@@ -42,10 +42,12 @@ const code = (lines) => lines.map((line) => new Paragraph({
   indent: { left: 200 },
   children: [new TextRun({ text: line || " ", font: "Consolas", size: 18 })],
 }));
-const caption = (text) => new Paragraph({
-  alignment: AlignmentType.CENTER,
-  spacing: { after: 200, before: 60 },
-  children: [new TextRun({ text, italics: true, size: 18, color: "595959" })],
+
+// Nhan "file: dong" de danh dau noi dat dung
+const where = (text) => new Paragraph({
+  spacing: { before: 40, after: 200 },
+  children: [new TextRun({ text: "Nguồn: ", bold: true, size: 18, color: "7F7F7F" }),
+    new TextRun({ text, font: "Consolas", size: 18, color: "7F7F7F" })],
 });
 
 function table(headers, rows, widths) {
@@ -82,9 +84,271 @@ const image = (file, width, height, alt) => new Paragraph({
   })],
 });
 
-const docBase = (children) => new Document({
-  creator: "Bao cao TFTP + Bai 8",
-  title: "Bao cao",
+// ------------------------------------------------------------------ nội dung
+const children = [
+  new Paragraph({
+    alignment: AlignmentType.CENTER,
+    spacing: { after: 60 },
+    children: [new TextRun({ text: "BÀI 8 - CỜ CARO 3×3 (TIC-TAC-TOE)", bold: true, size: 38, color: ACCENT })],
+  }),
+  new Paragraph({
+    alignment: AlignmentType.CENTER,
+    spacing: { after: 320 },
+    children: [new TextRun({ text: "Báo cáo cách làm và các thành phần chính của chương trình", italics: true, size: 24, color: "595959" })],
+  }),
+
+  h1("1. Mục tiêu"),
+  p("Xây dựng một trò chơi cờ caro 3×3 cho hai người chơi trên cùng máy tính, viết bằng thư viện pygame, với các yêu cầu cụ thể sau:"),
+  bullet("Hai người luân phiên click đặt quân X và O trên bàn cờ 3×3."),
+  bullet("Chương trình tự phát hiện thắng hoặc hòa ngay sau mỗi nước đi."),
+  bullet("Khi có người thắng, đường thắng được tô sáng để dễ nhận biết."),
+  bullet("Có nút chơi lại (và phím R) để bắt đầu ván mới."),
+  bullet("Thẻ của người đang đến lượt được làm nổi bật, giúp nhìn nhanh biết lượt đi thuộc về ai."),
+  bullet("Đếm số trận thắng của cả hai người và số ván hòa, giữ điểm xuyên suốt các ván."),
+  bullet("Không dùng bất kỳ tệp hình ảnh hay tệp font (.ttf) nào; mọi hình khối đều vẽ bằng hàm hình học của pygame."),
+  p("Toàn bộ mã nguồn nằm trong một tệp duy nhất: tictactoe.py. Các bước cài đặt, kiểm thử và đóng gói được mô tả trong README.md.", { italics: true }),
+
+  h1("2. Cách làm"),
+  h2("2.1. Bước 1 - Khởi tạo cửa sổ và các hằng số bố cục"),
+  p("Khai báo trước kích thước các thành phần (cạnh ô, vị trí bàn cờ, vị trí nút) để khi vẽ chỉ cần truyền số vào, không phải tính lại mỗi khung hình. Cửa sổ dùng chế độ cửa sổ cố định, không dùng RESIZABLE để bố cục không bị xáo lệch."),
+  ...code([
+    "CELL = 150                        # canh mot o",
+    "WINDOW_W, WINDOW_H = 640, 760     # kich thuoc cua so",
+    "BOARD_X = (WINDOW_W - BOARD_PX) // 2   # can giua ban co",
+    "btn_play  = pygame.Rect(BTN_X, BTN_Y, BTN_W, BTN_H)",
+    "btn_clear = pygame.Rect(BTN_X + BTN_W + BTN_GAP, BTN_Y, BTN2_W, BTN_H)",
+  ]),
+  where("tictactoe.py:17-37 (khai bao hang so) va tictactoe.py:143-145 (tao hai nut)"),
+  h2("2.2. Bước 2 - Lưu bàn cờ bằng mảng hai chiều"),
+  p("Bàn cờ được lưu trong mảng 3×3. Mỗi ô chứa \"X\", \"O\" hoặc chuỗi rỗng nếu còn trống. Quy ước bất biến là board[row][col]: row là dòng tính từ trên xuống, col là cột tính từ trái sang phải, cả hai chạy từ 0 đến 2."),
+  ...code([
+    "def new_board() -> list[list[str]]:",
+    "    return [[EMPTY for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)]",
+  ]),
+  where("tictactoe.py:74 - new_board()"),
+  p("Phải tạo bằng vòng lặp lồng như trên chứ không dùng [[]] * 3, vì cách nhân danh sách sẽ làm các hàng cùng trỏ về một danh sách: đặt X vào hàng 0 thì hàng 1 và hàng 2 cũng đổi theo."),
+  h2("2.3. Bước 3 - Đổi toạ độ chuột thành toạ độ ô"),
+  p("Bàn cờ chia đều thành các ô vuông cạnh CELL pixel, nên phép chia lấy nguyên ra số thứ tự của ô. Kết quả nằm ngoài khoảng 0 đến 2 nghĩa là chuột đang ở ngoài bàn cờ, hàm trả về None để bỏ qua."),
+  ...code([
+    "def cell_at(pos):",
+    "    x, y = pos",
+    "    col, row = (x - BOARD_X) // CELL, (y - BOARD_Y) // CELL",
+    "    if 0 <= row < BOARD_SIZE and 0 <= col < BOARD_SIZE:",
+    "        return int(row), int(col)",
+    "    return None",
+  ]),
+  where("tictactoe.py:102 - cell_at(); tictactoe.py:92 - cell_rect() dung de ve o"),
+  h2("2.4. Bước 4 - Xử lý cú click: đủ điều kiện mới cho đặt quân"),
+  p("Một cú click chỉ được chấp nhận khi đồng thời thỏa ba điều kiện: ván chưa kết thúc, chuột nằm trong bàn cờ, và ô đó còn trống. Thiếu một điều kiện là bỏ qua, không đổi lượt."),
+  ...code([
+    "def play(self, cell):",
+    "    if self.over or cell is None:        # da ket thuc hoac click ngoai ban co",
+    "        return",
+    "    row, col = cell",
+    "    if self.board[row][col] != EMPTY:     # o nay da co quan",
+    "        return",
+    "    self.board[row][col] = self.player",
+    "    self.moves += 1",
+  ]),
+  where("tictactoe.py:208 - play()"),
+  h2("2.5. Bước 5 - Kiểm tra thắng bằng tám đường có sẵn"),
+  p("Bàn 3×3 có đúng tám đường thắng: ba hàng ngang, ba cột dọc và hai đường chéo. Khai báo trước tám bộ ba toạ độ này, rồi kiểm tra xem có bộ nào cả ba ô đều mang ký hiệu của người đang đi hay không. Hàm trả về chính bộ ba ô thắng đó để vẽ vạch tô sáng."),
+  ...code([
+    "WIN_LINES = (                                 # 3 hang + 3 cot + 2 duong cheo",
+    "    ((0,0),(0,1),(0,2)), ((1,0),(1,1),(1,2)), ((2,0),(2,1),(2,2)),",
+    "    ((0,0),(1,0),(2,0)), ((0,1),(1,1),(2,1)), ((0,2),(1,2),(2,2)),",
+    "    ((0,0),(1,1),(2,2)), ((0,2),(1,1),(2,0)),",
+    ")",
+    "",
+    "def check_win(board, player):",
+    "    for line in WIN_LINES:",
+    "        if all(board[r][c] == player for r, c in line):",
+    "            return line        # tra ve duong thang de to sang",
+    "    return None                # chua co ai thang",
+  ]),
+  where("tictactoe.py:59 - WIN_LINES; tictactoe.py:79 - check_win()"),
+  h2("2.6. Bước 6 - Kiểm tra hòa và cộng điểm"),
+  p("Hòa xảy ra khi không có đường thắng nào và bàn cờ đã đầy đủ 9 ô. Thứ tự kiểm tra bắt buộc là thắng trước, đầy bàn sau, vì bàn đầy mà vẫn có ba ô thẳng hàng thì là thắng chứ không phải hòa. Ngay khi phát sinh kết quả, điểm được cộng vào bảng điểm bên ngoài ván đang chơi."),
+  ...code([
+    "line = check_win(self.board, self.player)",
+    "if line is not None:",
+    "    self.over, self.winner, self.win_line = True, self.player, line",
+    "    self.wins[self.player] += 1        # cong diem cho nguoi thang",
+    "elif is_full(self.board):",
+    "    self.over = True",
+    "    self.draws += 1                    # cong 1 vong hoa",
+    "else:",
+    "    self.player = O if self.player == X else X",
+  ]),
+  where("tictactoe.py:215-225 - play(); tictactoe.py:87 - is_full()"),
+  h2("2.7. Bước 7 - Nút bấm: chơi lại và xóa điểm"),
+  p("Hai nút là hai hình chữ nhật cố định. Khi rê chuột vào nút thì không tô ô bàn cờ, và khi bấm vào thì gọi reset() (xoá ván, giữ điểm) hoặc reset_scores() (xoá cả bảng điểm). Phím R thực hiện cùng tác vụ với nút Chơi lại."),
+  ...code([
+    "def _button_at(self, pos):",
+    "    for button in (self.btn_play, self.btn_clear):",
+    "        if button.collidepoint(pos):",
+    "            return button",
+    "    return None",
+    "",
+    "# trong handle_event, khi bam chuot trai:",
+    "button = self._button_at(event.pos)",
+    "if button is not None:",
+    "    self.reset_scores() if button == self.btn_clear else self.reset()",
+    "    return True          # da xu ly nut, khong xu ly tiep click o ban co",
+    "self.play(cell_at(event.pos))",
+  ]),
+  where("tictactoe.py:202 - _button_at(); tictactoe.py:180 - handle_event()"),
+  p("Phân biệt rõ hai loại xóa là điểm quan trọng: reset() chỉ tạo lại bàn cờ, giữ nguyên wins và draws; reset_scores() mới đưa toàn bộ bảng điểm về 0. Nhờ vậy người chơi chơi nhiều ván vẫn cộng dồn được điểm.", { italics: true }),
+  h2("2.8. Bước 8 - Vòng lặp sự kiện"),
+  p("Hàm main() chỉ lo phần khung: lấy sự kiện, đưa cho đối tượng xử lý, vẽ lại toàn màn hình và giới hạn 60 khung hình mỗi giây. Nhờ tách vậy phần logic hoàn toàn độc lập với phần hiển thị, có thể kiểm thử bằng cách gọi trực tiếp mà không cần mở cửa sổ."),
+  ...code([
+    "def main() -> int:",
+    "    game = TicTacToe()",
+    "    clock = pygame.time.Clock()",
+    "    running = True",
+    "    while running:",
+    "        for event in pygame.event.get():",
+    "            running = game.handle_event(event)",
+    "        game.draw()",
+    "        clock.tick(60)",
+    "    pygame.quit()",
+  ]),
+  where("tictactoe.py:293 - main()"),
+
+  h1("3. Các thành phần chính đã render ra màn hình"),
+  p("Mọi thành phần dưới đây đều được vẽ bằng các hàm hình học của pygame, không dùng tệp ảnh nào. Bảng dưới liệt kê phần tử tương ứng với mỗi thành phần."),
+  table(
+    ["Thành phần trên màn hình", "Hàm dùng để vẽ", "Nơi định nghĩa"],
+    [
+      ["Nền trắng", "screen.fill(BG_COLOR)", "draw() - dòng 257"],
+      ["Lưới bàn cờ (4 vạch)", "pygame.draw.line", "draw() - dòng 267-272"],
+      ["Quân X", "pygame.draw.line, hai nét chéo", "draw_mark() - dòng 112"],
+      ["Quân O", "pygame.draw.circle, hình tròn rỗng", "draw_mark() - dòng 121"],
+      ["Đường thắng tô sáng", "pygame.draw.line, nét đậm hơn", "draw_win_line() - dòng 125"],
+      ["Vùng ô đang rê chuột", "pygame.draw.rect", "draw() - dòng 264-265"],
+      ["Thẻ người chơi (khung vuông)", "pygame.draw.rect, viền đổi theo lượt", "_panel() - dòng 239"],
+      ["Số trận thắng trong thẻ", "font.render rồi blit", "_panel() - dòng 247"],
+      ["Dòng trạng thái và gợi ý", "font.render rồi blit", "_text() - dòng 229"],
+      ["Nút Chơi lại, Xóa điểm", "pygame.draw.rect vuông góc", "_button() - dòng 250"],
+    ],
+    [2900, 3100, 3026],
+  ),
+
+  h2("3.1. Quân X và quân O"),
+  p("Cùng một hàm draw_mark nhận ký hiệu để quyết định vẽ hình gì: X là hai nét chéo cắt nhau, O là hình tròn rỗng. Cùng hàm cũng dùng lại cho biểu tượng nhỏ trên thẻ người chơi."),
+  ...code([
+    "def draw_mark(surface, center, mark, color, radius, width=LINE_W):",
+    "    cx, cy = center",
+    "    if mark == X:",
+    "        pygame.draw.line(surface, color, (cx-radius, cy-radius), (cx+radius, cy+radius), width)",
+    "        pygame.draw.line(surface, color, (cx-radius, cy+radius), (cx+radius, cy-radius), width)",
+    "    else:",
+    "        pygame.draw.circle(surface, color, (cx, cy), radius, width)",
+  ]),
+  where("tictactoe.py:112 - draw_mark()"),
+  h2("3.2. Đường thắng được tô sáng"),
+  p("Khi có người thắng, hàm check_win trả về bộ ba ô thắng. Hàm vẽ nối tâm ô đầu và ô cuối bằng một nét đậm hơn nét thường và đổi sang màu xanh lá để dễ nhận biết."),
+  ...code([
+    "def draw_win_line(surface, line):",
+    "    (r0, c0), (r1, c1) = line[0], line[2]",
+    "    pygame.draw.line(surface, WIN_COLOR,",
+    "                     cell_center(r0, c0), cell_center(r1, c1), LINE_W + 6)",
+  ]),
+  where("tictactoe.py:125 - draw_win_line()"),
+  h2("3.3. Thẻ người chơi và bảng điểm"),
+  p("Mỗi người một thẻ vuông ở đầu màn hình. Điều kiện làm nổi bật thẻ là đang đến lượt bên đó và ván chưa kết thúc; khi ván xong thì cả hai thẻ cùng mờ đi vì không còn ai đi nữa. Trên thẻ có ký hiệu quân, tên người chơi và số trận thắng tích luỹ."),
+  ...code([
+    "self._panel(X, left,  self.player == X and not self.over)",
+    "self._panel(O, right, self.player == O and not self.over)",
+    "",
+    "def _panel(self, mark, rect, is_active):",
+    "    color = PLAYER_COLOR[mark]",
+    "    pygame.draw.rect(self.screen, PANEL_ACTIVE if is_active else PANEL_COLOR, rect)",
+    "    pygame.draw.rect(self.screen, color if is_active else EDGE_DIM, rect,",
+    "                     width=3 if is_active else 2)",
+    "    draw_mark(self.screen, (rect.x + 50, rect.centery), mark, color, 26, 5)",
+    "    self._text_left(\"panel\", PLAYER_LABEL[mark], ...)",
+    "    self._text_left(\"score\", f\"{self.wins[mark]} thắng\", ...)",
+  ]),
+  where("tictactoe.py:239 - _panel(); tictactoe.py:261-262 - draw() goi hai the"),
+  h2("3.4. Nút bấm"),
+  p("Nút là hình chữ nhật vuông góc, đổi màu nền và viền khi rê chuột vào để có phản hồi rõ ràng. Vùng bấm chính là hình chữ nhật đó, kiểm tra bằng collidepoint."),
+  ...code([
+    "def _button(self, rect, label):",
+    "    is_hover = rect == self.hover_button",
+    "    pygame.draw.rect(self.screen, (222,232,246) if is_hover else (236,241,247), rect)",
+    "    pygame.draw.rect(self.screen, TEXT_COLOR if is_hover else EDGE_DIM, rect, width=2)",
+    "    self._text(\"button\", label, TEXT_COLOR if is_hover else DIM_TEXT, rect.center)",
+  ]),
+  where("tictactoe.py:250 - _button()"),
+  h2("3.5. Chữ hiển thị và vấn đề font tiếng Việt"),
+  p("Chữ được lấy từ font có sẵn của hệ điều hành bằng pygame.font.SysFont, ưu tiên Segoe UI trên Windows. Lý do không dùng font mặc định đi kèm pygame: font đó thiếu các ký tự có dấu như ơ, ạ, ệ, ố nên chữ sẽ hiện thành ô vuông. Nếu máy không tìm được font nào, chương trình tự lùi về pygame.font.Font(None, size). Đây vẫn không phải tệp font tải kèm, nên đáp ứng yêu cầu không dùng asset."),
+  ...code([
+    "FONT_NAMES = \"segoeui, arial, verdana, dejavusans, tahoma, sans\"",
+    "",
+    "@staticmethod",
+    "def _font(size):",
+    "    font = pygame.font.SysFont(FONT_NAMES, size)",
+    "    return font or pygame.font.Font(None, size)",
+  ]),
+  where("tictactoe.py:70 - FONT_NAMES; tictactoe.py:151 - _font()"),
+  h2("3.6. Bảng màu của giao diện"),
+  p("Nền trắng, các khung vuông góc, màu chủ đạo lấy từ màu của hai quân để người chơi nhận diện bên nào là bên nào."),
+  ...code([
+    "BG_COLOR     = (247, 249, 252)   # nen trang",
+    "PANEL_COLOR  = (233, 238, 245)   # the nguoi choi chua den luot",
+    "PANEL_ACTIVE = (214, 227, 244)   # the nguoi choi dang den luot",
+    "GRID_COLOR   = (150, 163, 182)   # duong ke ban co",
+    "WIN_COLOR    = (22, 150, 92)     # duong thang",
+    "X_COLOR      = (37, 99, 235)     # quan X",
+    "O_COLOR      = (217, 96, 16)     # quan O",
+  ]),
+  where("tictactoe.py:39-53 - khai bao bang mau"),
+
+  h1("4. Hình ảnh kết quả"),
+  p("Lúc bắt đầu: bàn cờ trống, thẻ Người 1 viền sáng vì X đi trước."),
+  image("ttt_start.png", 250, 297, "Màn hình lúc bắt đầu"),
+  p("Giữa ván: ô đang rê chuột được tô nền để người chơi định vị trí."),
+  image("ttt_mid.png", 250, 297, "Bàn cờ giữa ván"),
+  p("Khi X kín hàng trên cùng: dòng thông báo đổi màu xanh lá và đường thắng được tô sáng."),
+  image("ttt_win.png", 250, 297, "X thắng hàng ngang trên cùng"),
+  p("Chơi lại rồi thắng tiếp một ván nữa: cả hai thẻ đều có 1 trận thắng, nút Chơi lại sáng lên khi rê chuột vào."),
+  image("ttt_score.png", 250, 297, "Bảng điểm hai bên và nút bấm"),
+  p("Các ảnh trên được sinh tự động bởi tệp selftest.py ở chế độ chạy không hiển thị cửa sổ (biến môi trường SDL_VIDEODRIVER=dummy), nên không cần thao tác chuột thật. Nội dung file ảnh nằm trong docs/img/.", { italics: true }),
+
+  h1("5. Kiểm thử"),
+  p("Tệp selftest.py dựng game ở chế độ không hiển thị cửa sổ rồi gửi sự kiện giả lập, kiểm tra các trường hợp sau:"),
+  bullet("Bàn cờ mới tạo có đủ 3 dòng 3 cột và toàn bộ ô rỗng."),
+  bullet("Cả tám đường thắng đều được nhận diện đúng, không báo thắng nhầm cho người còn lại."),
+  bullet("Bàn đầy mà không ai thắng được phân định đúng là hòa."),
+  bullet("Click vào ô đã có quân hoặc ngoài bàn cờ không làm thay đổi lượt đi."),
+  bullet("Sau khi có kết quả, bàn cờ bị khoá, mọi nước đi tiếp theo bị bỏ qua."),
+  bullet("Mỗi lần thắng cộng đúng 1 điểm cho đúng người, ván hòa cộng vào bộ đếm hòa."),
+  bullet("Bấm nút Chơi lại xóa ván nhưng giữ nguyên điểm; bấm nút Xóa điểm đưa cả bảng điểm về 0."),
+  bullet("Hiệu ứng rê chuột đúng: trên nút thì không tô ô bàn cờ, trên ô thì tô ô đó."),
+  bullet("Phím R cho lại ván, phím ESC trả về giá trị yêu cầu thoát chương trình."),
+  ...code([
+    "$ python selftest.py",
+    "OK  logic: new_board / check_win / is_full / cell_at",
+    "OK  flow: click hop le / thang / hoa / khoa van / nut bam / R / xoa diem / ESC",
+    "OK  hover: con tro tren nut / tren o",
+    "OK  anh minh hoa -> docs/img",
+  ]),
+  where("selftest.py:58 - check_logic(); selftest.py:76 - check_flow(); selftest.py:115 - check_highlight()"),
+
+  h1("6. Đóng gói thành file chạy trực tiếp"),
+  p("Dùng PyInstaller đóng gói toàn bộ pygame vào một file .exe để chạy trên máy khác không cần cài Python. Tệp build_exe.ps1 thực hiện việc này, kết quả là tictactoe.exe trong thư mục dist/."),
+  ...code([
+    "uv pip install --python .venv\\Scripts\\python.exe pyinstaller",
+    ".\\build_exe.ps1",
+  ]),
+  where("build_exe.ps1 (goi PyInstaller voi tham so --onefile --console --noconfirm --clean)"),
+];
+
+// ------------------------------------------------------------------ xuất file
+const doc = new Document({
+  creator: "Bai 8 - TicTacToe pygame",
+  title: "Bai 8 - TicTacToe pygame",
   styles: {
     default: { document: { run: { font: "Calibri", size: 22 } } },
     paragraphStyles: [
@@ -97,11 +361,6 @@ const docBase = (children) => new Document({
         id: "Heading2", name: "Heading 2", basedOn: "Normal", next: "Normal", quickFormat: true,
         run: { size: 26, bold: true, font: "Calibri", color: "2E74B5" },
         paragraph: { spacing: { before: 240, after: 120 }, outlineLevel: 1 },
-      },
-      {
-        id: "Heading3", name: "Heading 3", basedOn: "Normal", next: "Normal", quickFormat: true,
-        run: { size: 23, bold: true, font: "Calibri", color: "404040" },
-        paragraph: { spacing: { before: 180, after: 80 }, outlineLevel: 2 },
       },
     ],
   },
@@ -132,204 +391,10 @@ const docBase = (children) => new Document({
   }],
 });
 
-// =============================================================== DOC 1: TFTP
-
-// ============================================================ DOC 2: Bài 8
-const gameChildren = [
-  new Paragraph({
-    alignment: AlignmentType.CENTER,
-    spacing: { after: 80 },
-    children: [new TextRun({ text: "BÀI 8: CỜ CARO 3×3 (TIC-TAC-TOE)", bold: true, size: 38, color: ACCENT })],
-  }),
-  new Paragraph({
-    alignment: AlignmentType.CENTER,
-    spacing: { after: 320 },
-    children: [new TextRun({ text: "Lập trình bằng pygame - không cần bất kỳ tài nguyên (asset) nào", italics: true, size: 24, color: "595959" })],
-  }),
-
-  h1("1. Đề bài và yêu cầu"),
-  bullet("Hai người luân phiên click đặt quân X và O trên bàn cờ 3×3."),
-  bullet("Kiểm tra thắng hoặc hòa sau mỗi nước đi."),
-  bullet("Tô sáng đường thắng khi có người thắng."),
-  bullet("Nhấn phím R để chơi lại ván mới."),
-  bullet("Kỹ năng cần sử dụng: mảng hai chiều, kiểm tra điều kiện thắng, vòng lặp sự kiện trong pygame."),
-  bullet("Yêu cầu bổ sung: dựng game bằng pygame nhưng không được dùng file hình ảnh hay font tải ngoài."),
-
-  h1("2. Ý tưởng và cách làm"),
-  h2("2.1. Vì sao không cần asset?"),
-  p("Mọi thành phần trên màn hình đều được vẽ bằng các hàm hình học của pygame, không đọc bất kỳ tệp ảnh hay tệp font nào:"),
-  p("Riêng chữ thì dùng pygame.font.SysFont để lấy font có sẵn của hệ điều hành (Segoe UI trên Windows). Lý do: font mặc định đi kèm pygame không có dấu tiếng Việt, render ra sẽ thành ô vuông. Nếu máy không tìm được font nào, chương trình tự lùi về pygame.font.Font(None, size)."),
-  table(
-    ["Thành phần", "Cách vẽ không cần asset"],
-    [
-      ["Đường kẻ bàn cờ", "pygame.draw.line() vẽ 4 vạch (2 ngang, 2 dọc)"],
-      ["Quân X", "pygame.draw.line() vẽ hai nét chéo, đối xứng qua tâm ô"],
-      ["Quân O", "pygame.draw.circle() vẽ hình tròn rỗng"],
-      ["Đường thắng", "pygame.draw.line() nối tâm ô đầu và ô cuối, nét đậm hơn, màu khác"],
-      ["Chữ thông báo", "pygame.font.Font(None, size) - font mặc định đi kèn pygame"],
-      ["Vùng đang rê chuột", "pygame.draw.rect() bo góc bo tròn màu nhạt"],
-    ],
-    [2300, 6726],
-  ),
-  h2("2.2. Mô hình dữ liệu: mảng hai chiều"),
-  p("Bàn cờ được biểu diễn bằng mảng 3×3, mỗi phần tử lưu ký hiệu \"X\", \"O\" hoặc chuỗi rỗng nếu ô còn trống:"),
-  ...code([
-    "board = [",
-    "    ['', '', ''],      # dong 0",
-    "    ['', '', ''],      # dong 1",
-    "    ['', '', ''],      # dong 2",
-    "]",
-    "",
-    "# Truy cap oi [dong][cot]; goi y board[1][2] la o giua dong, ben phai.",
-  ]),
-  p("Cách quy đổi giữa toạ độ chuột và toạ độ ô là công thức chia lấy nguyên, vì bàn cờ chia đều thành các ô vuông cạnh CELL pixel:"),
-  ...code([
-    "col = (x - MARGIN) // CELL",
-    "row = (y - MARGIN) // CELL",
-    "# neu row hoac col ngoai 0..2 thi click khong trung o nao -> tra ve None",
-  ]),
-  h2("2.3. Thuật toán kiểm tra thắng"),
-  p("Trên bàn 3×3 có đúng 8 đường thắng: 3 hàng ngang, 3 cột dọc và 2 đường chéo. Ta khai báo trước danh sách các đường này, rồi kiểm tra xem có đường nào mà cả ba ô đều thuộc về cùng một người chơi hay không. Hàm trả về chính đường thắng đó để vẽ vạch tô sáng, hoặc trả về None nếu chưa có ai thắng:"),
-  ...code([
-    "WIN_LINES = (",
-    "    ((0,0),(0,1),(0,2)), ((1,0),(1,1),(1,2)), ((2,0),(2,1),(2,2)),   # hang",
-    "    ((0,0),(1,0),(2,0)), ((0,1),(1,1),(2,1)), ((0,2),(1,2),(2,2)),   # cot",
-    "    ((0,0),(1,1),(2,2)), ((0,2),(1,1),(2,0)),                        # duong cheo",
-    ")",
-    "",
-    "def check_win(board, player):",
-    "    for line in WIN_LINES:",
-    "        if all(board[r][c] == player for r, c in line):",
-    "            return line          # thu duoc duong thang de to sang",
-    "    return None                  # chua co ai thang",
-  ]),
-  p("Điều kiện hòa chỉ xảy ra khi không có đường thắng nào và bàn cờ đã đầy. Với mảng cố định 3×3, phép kiểm tra chạy trong thời gian hằng số (8 đường × 3 ô), không phụ thuộc số lượng quân đã đặt."),
-  h2("2.4. Luồng xử lý sự kiện"),
-  numbered("Khởi tạo cửa sổ, font và bàn cờ rỗng qua hàm reset()."),
-  numbered("Vòng lặp chính liên tục lấy sự kiện từ pygame.event.get(), mỗi khung hình vẽ lại toàn bộ màn hình và giới hạn 60 khung hình/giây bằng clock.tick(60)."),
-  numbered("Khi người chơi click: đổi toạ độ chuột thành tọa độ ô, nếu ô trống và ván chưa kết thúc thì đặt quân của người đang đi."),
-  numbered("Ngay sau khi đặt quân, kiểm tra thắng; nếu thắng thì khóa bàn cờ, lưu đường thắng để tô sáng. Nếu không thắng mà bàn cờ đầy thì kết luận hòa."),
-  numbered("Đổi lượt cho người chơi kia bằng cách hoán đổi ký hiệu X và O."),
-  numbered("Nhấn phím R gọi lại reset() để xoá sạch trạng thái; nhấn ESC hoặc đóng cửa sổ để thoát."),
-
-  h1("3. Thành phần chính của chương trình"),
-  h2("3.1. Các hằng số thiết kế"),
-  table(
-    ["Hằng số", "Giá trị", "Ý nghĩa"],
-    [
-      ["BOARD_SIZE", "3", "Kích thước bàn cờ"],
-      ["CELL", "150", "Cạnh một ô (pixel)"],
-      ["MARGIN", "60", "Lề giữa khung cửa sổ và bàn cờ"],
-      ["LINE_W", "6", "Độ dày nét vẽ"],
-      ["X / O / EMPTY", "\"X\" / \"O\" / \"\"", "Ký hiệu quân và ô trống"],
-      ["WIN_LINES", "8 bộ ba", "Tất cả các đường thắng"],
-    ],
-    [2300, 1900, 4826],
-  ),
-  h2("3.2. Các hàm xử lý logic"),
-  table(
-    ["Hàm", "Trách nhiệm"],
-    [
-      ["new_board()", "Tạo mảng 3×3 với toàn bộ ô trống"],
-      ["check_win(board, player)", "Kiểm tra 8 đường thắng, trả về đường thắng hoặc None"],
-      ["is_full(board)", "Kiểm tra bàn cờ đã đầy chưa - dùng để kết luận hòa"],
-      ["cell_center(row, col)", "Tính tọa độ tâm của ô trên cửa sổ"],
-      ["cell_at(pos)", "Chuyển tọa độ chuột thành (row, col), trả None nếu nằm ngoài bàn cờ"],
-    ],
-    [3100, 5926],
-  ),
-  h2("3.3. Các hàm vẽ"),
-  table(
-    ["Hàm", "Trách nhiệm"],
-    [
-      ["draw_mark(surface, center, mark)", "Vẽ quân X (hai nét chéo) hoặc O (hình tròn rỗng) bằng pygame.draw"],
-      ["draw_win_line(surface, line)", "Nối tâm hai ô đầu cuối của đường thắng bằng nét đậm màu xanh lá"],
-      ["TicTacToe._panel(mark, rect, is_active)", "Vẽ thẻ người chơi: nền, viền sáng khi đến lượt, ký hiệu và số trận thắng"],
-      ["TicTacToe._button(rect, label)", "Vẽ nút bấm, đổi màu khi rê chuột vào"],
-      ["TicTacToe.draw()", "Xoá nền, vẽ hai thẻ người chơi, vùng rê chuột, lưới, quân, vạch thắng, dòng trạng thái và hai nút"],
-    ],
-    [3800, 5226],
-  ),
-  h2("3.4. Lớp TicTacToe"),
-  p("Toàn bộ trạng thái của ván cờ được gom vào một lớp để mã dễ đọc và dễ mở rộng:"),
-  table(
-    ["Thuộc tính", "Kiểu", "Ý nghĩa"],
-    [
-      ["board", "list[list[str]]", "Mảng 2 chiều chứa ký hiệu tại mỗi ô"],
-      ["player", "str", "Lượt đi hiện tại: X hoặc O"],
-      ["over", "bool", "Ván đã kết thúc chưa (thắng hoặc hòa)"],
-      ["winner", "str", "Người thắng, rỗng nếu hòa hoặc chưa xong"],
-      ["win_line", "tuple | None", "Bộ ba ô thắng để tô sáng"],
-      ["hover", "tuple | None", "Ô đang rê chuột, dùng để đánh dấu"],
-      ["hover_button", "pygame.Rect | None", "Nút đang rê chuột, dùng để đổi màu"],
-      ["wins", "dict[str, int]", "Số trận thắng của từng người, giữ xuyên suốt các ván"],
-      ["draws", "int", "Số ván hoà"],
-      ["btn_play / btn_clear", "pygame.Rect", "Vùng bấm của nút Chơi lại và Xóa điểm"],
-      ["moves", "int", "Số nước đã đi trong ván hiện tại"],
-    ],
-    [2000, 2500, 4526],
-  ),
-  p("Năm phương thức chính: reset() khởi tạo lại ván đang chơi nhưng giữ nguyên điểm, reset_scores() xoá cả bảng điểm, handle_event() xử lý sự kiện chuột và bàn phím, _button_at() xác định nút nào vừa được bấm, play() đặt quân, kiểm tra kết quả và cộng điểm. Hàm main() chỉ lo phần tạo cửa sổ và vòng lặp sự kiện, nhờ vậy phần logic hoàn toàn tách biệt khỏi phần hiển thị."),
-  h2("3.5. Bảng điểm và thao tác"),
-  p("Mỗi người có một thẻ riêng ở đầu màn hình. Thẻ của người đang đến lượt được viền sáng màu của họ còn thẻ kia mờ đi, nhờ vậy nhìn nhanh biết lượt đi thuộc về ai. Mỗi lần có người thắng, số thắng của họ tăng thêm 1; số ván hoà cũng được cộng vào giữa hai thẻ. Nút Chơi lại chỉ xoá ván đang chơi và giữ nguyên điểm, còn nút Xóa điểm mới đưa cả bảng điểm về 0."),
-  table(
-    ["Thao tác", "Tác dụng"],
-    [
-      ["Chuột trái trên ô bàn cờ", "Đặt quân X hoặc O vào ô đang trống"],
-      ["Chuột trái trên nút Chơi lại", "Bắt đầu ván mới, giữ nguyên bảng điểm"],
-      ["Chuột trái trên nút Xóa điểm", "Xoá ván đang chơi và đưa bảng điểm về 0"],
-      ["Phím R", "Chơi lại từ đầu (tương đương nút Chơi lại)"],
-      ["Phím ESC hoặc Q", "Thoát chương trình"],
-    ],
-    [3200, 5826],
-  ),
-
-  h1("4. Kết quả chạy thử"),
-  p("Lúc bắt đầu: bàn cờ trống, thẻ Người 1 viền sáng vì X đi trước."),
-  image("ttt_start.png", 250, 297, "Màn hình lúc bắt đầu"),
-  p("Giữa ván: ô đang rê chuột được tô nền để người chơi định vị trí."),
-  image("ttt_mid.png", 250, 297, "Bàn cờ giữa ván"),
-  p("Khi X kín hàng trên cùng: dòng thông báo đổi màu xanh lá và đường thắng được tô sáng."),
-  image("ttt_win.png", 250, 297, "X thắng hàng ngang trên cùng"),
-  p("Chơi lại rồi thắng tiếp một ván nữa, cả hai thẻ đều có 1 trận thắng; nút Chơi lại sáng lên khi rê chuột vào."),
-  image("ttt_score.png", 250, 297, "Bảng điểm hai bên và nút bấm"),
-  p("Các ảnh trên được sinh tự động bằng chế độ chạy không hiển thị cửa sổ (SDL_VIDEODRIVER=dummy) trong tệp selftest.py, nên việc kiểm thử không cần thao tác chuột thật."),
-
-  h1("5. Kiểm thử"),
-  p("Tệp selftest.py kiểm tra tự động các trường hợp sau:"),
-  bullet("Bàn cờ mới tạo đều rỗng, đủ 3 dòng và 3 cột."),
-  bullet("Cả 8 đường thắng đều được nhận diện đúng, không báo thắng nhầm cho người còn lại."),
-  bullet("Bàn cờ đầy mà không ai thắng được phân định đúng là hòa."),
-  bullet("Click vào ô đã có quân hoặc ngoài bàn cờ không làm thay đổi lượt đi."),
-  bullet("Khi ván đã kết thúc, mọi nước đi tiếp theo đều bị bỏ qua."),
-  bullet("Nhấn R xoá sạch bàn cờ; nhấn ESC trả về giá trị yêu cầu thoát chương trình."),
-  ...code([
-    "$ python selftest.py",
-    "OK  logic: new_board / check_win / is_full / cell_at",
-    "OK  flow: click hop le / thang / hoa / khoa van / R / ESC",
-    "OK  anh minh hoa -> docs/img",
-    "",
-    "Tat ca kiem tra deu PASS.",
-  ]),
-
-  h1("6. Kinh nghiệm rút ra"),
-  bullet("Tách bạch phần logic khỏi phần hiển thị (lớp TicTacToe) giúp kiểm thử được bằng cách gọi hàm trực tiếp, không cần mở cửa sổ."),
-  bullet("Khai báo trước danh sách đường thắng rõ ràng hơn nhiều so với viết hàng loạt điều kiện if lồng nhau."),
-  bullet("Với pygame, hàm draw.line, draw.circle, draw.rect đủ để dựng giao diện hoàn chỉnh mà không cần một tệp asset nào."),
-  bullet("Font mặc định pygame.font.Font(None, size) giải quyết được nhu cầu hiển thị chữ mà không phải tải file .ttf."),
-  bullet("Cần khóa bàn cờ bằng một cờ trạng thái (over) sau khi có kết quả, nếu không người chơi có thể đặt quân đè lên ván đã kết thúc."),
-];
-
-// ------------------------------------------------------------------ xuất file
-async function main() {
-  fs.mkdirSync(OUT, { recursive: true });
-    const game = docBase(gameChildren);
-  
-  fs.writeFileSync(path.join(OUT, "Bai-8-TicTacToe.docx"), await Packer.toBuffer(game));
+Packer.toBuffer(doc).then((buffer) => {
+  fs.writeFileSync(path.join(OUT, "Bai-8-TicTacToe.docx"), buffer);
   console.log("Da tao: docs/Bai-8-TicTacToe.docx");
-}
-
-main().catch((err) => {
-  console.error(err);
+}).catch((err) => {
+  console.error(err.message);
   process.exit(1);
 });

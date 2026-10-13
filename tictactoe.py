@@ -36,18 +36,18 @@ BTN2_W = 150
 BTN_GAP = 16
 BTN_X = (WINDOW_W - (BTN_W + BTN_GAP + BTN2_W)) // 2
 
-BG_COLOR = (16, 21, 33)
-PANEL_COLOR = (23, 30, 45)
-PANEL_ACTIVE = (32, 45, 72)
-GRID_COLOR = (74, 90, 122)
-HOVER_COLOR = (32, 42, 64)
-WIN_COLOR = (126, 240, 168)
-TEXT_COLOR = (226, 232, 240)
-DIM_TEXT = (128, 140, 165)
-EDGE_DIM = (58, 70, 92)
+BG_COLOR = (247, 249, 252)
+PANEL_COLOR = (233, 238, 245)
+PANEL_ACTIVE = (214, 227, 244)
+GRID_COLOR = (150, 163, 182)
+HOVER_COLOR = (223, 232, 245)
+WIN_COLOR = (22, 150, 92)
+TEXT_COLOR = (28, 38, 54)
+DIM_TEXT = (118, 130, 148)
+EDGE_DIM = (186, 195, 209)
 
-X_COLOR = (94, 168, 255)
-O_COLOR = (255, 158, 94)
+X_COLOR = (37, 99, 235)
+O_COLOR = (217, 96, 16)
 
 EMPTY = ""
 X = "X"
@@ -238,10 +238,9 @@ class TicTacToe:
 
     def _panel(self, mark: str, rect: pygame.Rect, is_active: bool) -> None:
         color = PLAYER_COLOR[mark]
-        pygame.draw.rect(self.screen, PANEL_ACTIVE if is_active else PANEL_COLOR, rect,
-                         border_radius=12)
+        pygame.draw.rect(self.screen, PANEL_ACTIVE if is_active else PANEL_COLOR, rect)
         pygame.draw.rect(self.screen, color if is_active else EDGE_DIM, rect,
-                         width=3 if is_active else 2, border_radius=12)
+                         width=3 if is_active else 2)
         draw_mark(self.screen, (rect.x + 50, rect.centery), mark, color, 26, 5)
         self._text_left("panel", PLAYER_LABEL[mark], TEXT_COLOR if is_active else DIM_TEXT,
                      (rect.x + 96, rect.y + 30))
@@ -250,10 +249,8 @@ class TicTacToe:
 
     def _button(self, rect: pygame.Rect, label: str) -> None:
         is_hover = rect == self.hover_button
-        pygame.draw.rect(self.screen, (46, 62, 96) if is_hover else (30, 39, 58), rect,
-                         border_radius=10)
-        pygame.draw.rect(self.screen, TEXT_COLOR if is_hover else EDGE_DIM, rect,
-                         width=2, border_radius=10)
+        pygame.draw.rect(self.screen, (222, 232, 246) if is_hover else (236, 241, 247), rect)
+        pygame.draw.rect(self.screen, TEXT_COLOR if is_hover else EDGE_DIM, rect, width=2)
         self._text("button", label, TEXT_COLOR if is_hover else DIM_TEXT, rect.center)
 
     def draw(self) -> None:
@@ -265,7 +262,7 @@ class TicTacToe:
         self._panel(O, right, self.player == O and not self.over)
 
         if self.hover and not self.over and self.board[self.hover[0]][self.hover[1]] == EMPTY:
-            pygame.draw.rect(self.screen, HOVER_COLOR, cell_rect(*self.hover), border_radius=8)
+            pygame.draw.rect(self.screen, HOVER_COLOR, cell_rect(*self.hover))
 
         for i in range(1, BOARD_SIZE):  # 4 vạch ngang + dọc của lưới
             offset = BOARD_X + i * CELL

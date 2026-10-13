@@ -48,6 +48,7 @@ uv pip install --python .venv\Scripts\python.exe -r requirements.txt
 
 ## Giao diện
 
+- Giao diện nền trắng, mọi khung (thẻ người chơi, nút bấm, vùng rê chuột) đều là hình chữ nhật vuông góc.
 - Hai thẻ người chơi ở đầu màn hình, thẻ của người đang đến lượt được viền sáng màu của họ, thẻ còn lại mờ đi.
 - Mỗi bên có bộ đếm số trận thắng, số ván hòa hiển thị giữa hai thẻ. Bấm **Chơi lại** không mất điểm, muốn xóa hẳn thì bấm **Xóa điểm**.
 - Khi có người thắng, đường thắng được tô sáng màu xanh lá và dòng thông báo đổi màu tương ứng.
@@ -74,9 +75,9 @@ Chi tiết điều kiện, độ phức tạp và các lỗi hay gặp nằm tro
 | Quân X | `pygame.draw.line` (hai nét chéo) |
 | Quân O | `pygame.draw.circle` |
 | Vạch thắng | `pygame.draw.line` nét đậm |
-| Thẻ người chơi | `pygame.draw.rect` bo góc bo tròn, đổi viền theo lượt đi |
-| Nút bấm | `pygame.draw.rect` + đổi màu khi rê chuột |
-| Vùng rê chuột trên ô | `pygame.draw.rect` bo góc bo tròn |
+| Thẻ người chơi | `pygame.draw.rect` khung vuông góc, đổi viền theo lượt đi |
+| Nút bấm | `pygame.draw.rect` vuông góc + đổi màu khi rê chuột |
+| Vùng rê chuột trên ô | `pygame.draw.rect` vuông góc |
 | Chữ | `pygame.font.SysFont` — lấy font sẵn có của hệ điều hành |
 
 ## Kiểm thử
