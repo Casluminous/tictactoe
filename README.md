@@ -13,10 +13,10 @@ tictactoe/
 ├─ make_doc.js                   # Sinh lại file Word docs/Bai-8-TicTacToe.docx
 ├─ requirements.txt
 ├─ README.md
-└─ docs/
-   ├─ Bai-8-TicTacToe.docx       # Báo cáo: cách làm + các thành phần chính
-   ├─ Ghi-chu-thuat-toan-mang-2-chieu.md  # Ghi chú thuật toán mảng 2 chiều
-   └─ img/                       # Ảnh chụp màn hình (sinh tự động)
+├─ docs/
+│  ├─ Bai-8-TicTacToe.docx       # Báo cáo: cách làm + các thành phần chính
+│  ├─ Ghi-chu-thuat-toan-mang-2-chieu.md  # Ghi chú thuật toán mảng 2 chiều
+│  └─ img/                       # Ảnh chụp màn hình (sinh tự động)
 ```
 
 ## Cách chạy
@@ -36,13 +36,22 @@ uv pip install --python .venv\Scripts\python.exe -r requirements.txt
 .venv\Scripts\python.exe tictactoe.py
 ```
 
-## Phím tắt
+## Phím tắt và nút bấm
 
-| Phím | Tác dụng |
+| Thao tác | Tác dụng |
 |---|---|
-| Chuột trái | Đặt quân X hoặc O vào ô được chọn |
-| `R` | Chơi lại ván mới |
-| `ESC` hoặc `Q` | Thoát |
+| Chuột trái trên ô bàn cờ | Đặt quân X hoặc O vào ô đang trống |
+| Nút **Chơi lại** | Ván mới, giữ nguyên bảng điểm |
+| Nút **Xóa điểm** | Xoá ván và đưa bảng điểm về 0 |
+| Phím `R` | Chơi lại (giống nút Chơi lại) |
+| Phím `ESC` hoặc `Q` | Thoát |
+
+## Giao diện
+
+- Hai thẻ người chơi ở đầu màn hình, thẻ của người đang đến lượt được viền sáng màu của họ, thẻ còn lại mờ đi.
+- Mỗi bên có bộ đếm số trận thắng, số ván hòa hiển thị giữa hai thẻ. Bấm **Chơi lại** không mất điểm, muốn xóa hẳn thì bấm **Xóa điểm**.
+- Khi có người thắng, đường thắng được tô sáng màu xanh lá và dòng thông báo đổi màu tương ứng.
+- Chữ dùng `pygame.font.SysFont` lấy font sẵn có của hệ điều hành (Segoe UI), vì font mặc định của pygame không có dấu tiếng Việt. Không phải tệp asset nào được tải kèm.
 
 ## Cách làm (rút gọn)
 
@@ -51,7 +60,9 @@ uv pip install --python .venv\Scripts\python.exe -r requirements.txt
 3. **Kiểm tra thắng** bằng 8 đường khai báo sẵn (3 hàng, 3 cột, 2 chéo), đường nào có cả 3 ô cùng ký hiệu thì thắng.
 4. **Kiểm tra hòa** khi bàn đầy 9 ô mà không có đường thắng nào.
 5. **Tô sáng đường thắng** bằng `pygame.draw.line` nối tâm hai ô đầu cuối.
-6. **Nhấn R** gọi `reset()` để xoá sạch trạng thái.
+6. **Cộng điểm** ngay khi phát sinh kết quả: người thắng `wins[player] += 1`, ván hòa thì `draws += 1`.
+7. **Nút bấm** là hai `pygame.Rect` cố định; khi rê chuột vào nút thì bàn cờ không tô ô, khi bấm vào thì gọi `reset()` hoặc `reset_scores()` tương ứng.
+8. **Nhấn R** cũng gọi `reset()`, giữ nguyên bảng điểm.
 
 Chi tiết điều kiện, độ phức tạp và các lỗi hay gặp nằm trong `docs/Ghi-chu-thuat-toan-mang-2-chieu.md`.
 
@@ -63,8 +74,10 @@ Chi tiết điều kiện, độ phức tạp và các lỗi hay gặp nằm tro
 | Quân X | `pygame.draw.line` (hai nét chéo) |
 | Quân O | `pygame.draw.circle` |
 | Vạch thắng | `pygame.draw.line` nét đậm |
-| Vùng rê chuột | `pygame.draw.rect` bo góc bo tròn |
-| Chữ thông báo | `pygame.font.Font(None, size)` — font mặc định đi kèm pygame |
+| Thẻ người chơi | `pygame.draw.rect` bo góc bo tròn, đổi viền theo lượt đi |
+| Nút bấm | `pygame.draw.rect` + đổi màu khi rê chuột |
+| Vùng rê chuột trên ô | `pygame.draw.rect` bo góc bo tròn |
+| Chữ | `pygame.font.SysFont` — lấy font sẵn có của hệ điều hành |
 
 ## Kiểm thử
 
@@ -72,7 +85,7 @@ Chi tiết điều kiện, độ phức tạp và các lỗi hay gặp nằm tro
 .venv\Scripts\python.exe selftest.py
 ```
 
-Chạy ở chế độ không hiển thị cửa sổ (`SDL_VIDEODRIVER=dummy`), kiểm tra: bàn cờ mới rỗng, cả 8 đường thắng, bàn đầy thì hòa, click ô đã có quân hoặc ngoài bàn, khoá ván sau khi có kết quả, phím `R` và `ESC`. Đồng thời sinh lại 3 ảnh trong `docs/img/`.
+Chạy ở chế độ không hiển thị cửa sổ (`SDL_VIDEODRIVER=dummy`), kiểm tra: bàn cờ mới rỗng, cả 8 đường thắng, bàn đầy thì hòa, click ô đã có quân hoặc ngoài bàn, khoá ván sau khi có kết quả, cộng điểm đúng cho mỗi lần thắng/hòa, nút Chơi lại giữ điểm, nút Xóa điểm trả bảng điểm về 0, hiệu ứng rê chuột trên ô và trên nút, phím `R` và `ESC`. Đồng thời sinh lại 4 ảnh trong `docs/img/`.
 
 ## Đóng gói lại thành exe
 

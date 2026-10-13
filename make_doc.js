@@ -1,4 +1,4 @@
-﻿// Sinh 2 file Word cho báo cáo: TFTP và bài 8 (Tic-Tac-Toe bằng pygame).
+// Sinh 2 file Word cho báo cáo: TFTP và bài 8 (Tic-Tac-Toe bằng pygame).
 // Chạy:  node make_docs.js
 const fs = require("fs");
 const path = require("path");
@@ -158,6 +158,7 @@ const gameChildren = [
   h1("2. Ý tưởng và cách làm"),
   h2("2.1. Vì sao không cần asset?"),
   p("Mọi thành phần trên màn hình đều được vẽ bằng các hàm hình học của pygame, không đọc bất kỳ tệp ảnh hay tệp font nào:"),
+  p("Riêng chữ thì dùng pygame.font.SysFont để lấy font có sẵn của hệ điều hành (Segoe UI trên Windows). Lý do: font mặc định đi kèm pygame không có dấu tiếng Việt, render ra sẽ thành ô vuông. Nếu máy không tìm được font nào, chương trình tự lùi về pygame.font.Font(None, size)."),
   table(
     ["Thành phần", "Cách vẽ không cần asset"],
     [
@@ -241,9 +242,11 @@ const gameChildren = [
   table(
     ["Hàm", "Trách nhiệm"],
     [
-      ["draw_mark(surface, row, col, mark)", "Vẽ quân X (hai nét chéo) hoặc O (hình tròn) bằng pygame.draw"],
+      ["draw_mark(surface, center, mark)", "Vẽ quân X (hai nét chéo) hoặc O (hình tròn rỗng) bằng pygame.draw"],
       ["draw_win_line(surface, line)", "Nối tâm hai ô đầu cuối của đường thắng bằng nét đậm màu xanh lá"],
-      ["TicTacToe.draw()", "Xoá nền, vẽ vùng rê chuột, lưới, quân, vạch thắng, dòng trạng thái và gợi ý phím tắt"],
+      ["TicTacToe._panel(mark, rect, is_active)", "Vẽ thẻ người chơi: nền, viền sáng khi đến lượt, ký hiệu và số trận thắng"],
+      ["TicTacToe._button(rect, label)", "Vẽ nút bấm, đổi màu khi rê chuột vào"],
+      ["TicTacToe.draw()", "Xoá nền, vẽ hai thẻ người chơi, vùng rê chuột, lưới, quân, vạch thắng, dòng trạng thái và hai nút"],
     ],
     [3800, 5226],
   ),
@@ -258,29 +261,38 @@ const gameChildren = [
       ["winner", "str", "Người thắng, rỗng nếu hòa hoặc chưa xong"],
       ["win_line", "tuple | None", "Bộ ba ô thắng để tô sáng"],
       ["hover", "tuple | None", "Ô đang rê chuột, dùng để đánh dấu"],
-      ["moves", "int", "Số nước đã đi"],
+      ["hover_button", "pygame.Rect | None", "Nút đang rê chuột, dùng để đổi màu"],
+      ["wins", "dict[str, int]", "Số trận thắng của từng người, giữ xuyên suốt các ván"],
+      ["draws", "int", "Số ván hoà"],
+      ["btn_play / btn_clear", "pygame.Rect", "Vùng bấm của nút Chơi lại và Xóa điểm"],
+      ["moves", "int", "Số nước đã đi trong ván hiện tại"],
     ],
     [2000, 2500, 4526],
   ),
-  p("Ba phương thức chính: reset() khởi tạo lại toàn bộ trạng thái, handle_event() xử lý sự kiện chuột và bàn phím, play() đặt quân và kiểm tra kết quả. Hàm main() chỉ lo phần tạo cửa sổ và vòng lặp sự kiện, nhờ vậy phần logic hoàn toàn tách biệt khỏi phần hiển thị."),
-  h2("3.5. Phím tắt"),
+  p("Năm phương thức chính: reset() khởi tạo lại ván đang chơi nhưng giữ nguyên điểm, reset_scores() xoá cả bảng điểm, handle_event() xử lý sự kiện chuột và bàn phím, _button_at() xác định nút nào vừa được bấm, play() đặt quân, kiểm tra kết quả và cộng điểm. Hàm main() chỉ lo phần tạo cửa sổ và vòng lặp sự kiện, nhờ vậy phần logic hoàn toàn tách biệt khỏi phần hiển thị."),
+  h2("3.5. Bảng điểm và thao tác"),
+  p("Mỗi người có một thẻ riêng ở đầu màn hình. Thẻ của người đang đến lượt được viền sáng màu của họ còn thẻ kia mờ đi, nhờ vậy nhìn nhanh biết lượt đi thuộc về ai. Mỗi lần có người thắng, số thắng của họ tăng thêm 1; số ván hoà cũng được cộng vào giữa hai thẻ. Nút Chơi lại chỉ xoá ván đang chơi và giữ nguyên điểm, còn nút Xóa điểm mới đưa cả bảng điểm về 0."),
   table(
-    ["Phím", "Tác dụng"],
+    ["Thao tác", "Tác dụng"],
     [
-      ["Chuột trái", "Đặt quân X hoặc O vào ô được chọn"],
-      ["R", "Chơi lại từ đầu"],
-      ["ESC hoặc Q", "Thoát chương trình"],
+      ["Chuột trái trên ô bàn cờ", "Đặt quân X hoặc O vào ô đang trống"],
+      ["Chuột trái trên nút Chơi lại", "Bắt đầu ván mới, giữ nguyên bảng điểm"],
+      ["Chuột trái trên nút Xóa điểm", "Xoá ván đang chơi và đưa bảng điểm về 0"],
+      ["Phím R", "Chơi lại từ đầu (tương đương nút Chơi lại)"],
+      ["Phím ESC hoặc Q", "Thoát chương trình"],
     ],
-    [3000, 6026],
+    [3200, 5826],
   ),
 
   h1("4. Kết quả chạy thử"),
-  p("Giao diện khi bắt đầu ván: bàn cờ trống, lượt đi của X."),
-  image("ttt_start.png", 260, 301, "Bàn cờ 3x3 lúc bắt đầu"),
-  p("Giữa ván: hai người đã đi vài nước, ô đang rê chuột được tô nền để người chơi định vị trí."),
-  image("ttt_mid.png", 260, 301, "Bàn cờ giữa ván"),
-  p("Khi X kín hàng trên cùng: dòng thông báo đổi màu xanh lá và đường thắng được tô sáng để dễ nhận biết."),
-  image("ttt_win.png", 260, 301, "X thắng hàng ngang trên cùng"),
+  p("Lúc bắt đầu: bàn cờ trống, thẻ Người 1 viền sáng vì X đi trước."),
+  image("ttt_start.png", 250, 297, "Màn hình lúc bắt đầu"),
+  p("Giữa ván: ô đang rê chuột được tô nền để người chơi định vị trí."),
+  image("ttt_mid.png", 250, 297, "Bàn cờ giữa ván"),
+  p("Khi X kín hàng trên cùng: dòng thông báo đổi màu xanh lá và đường thắng được tô sáng."),
+  image("ttt_win.png", 250, 297, "X thắng hàng ngang trên cùng"),
+  p("Chơi lại rồi thắng tiếp một ván nữa, cả hai thẻ đều có 1 trận thắng; nút Chơi lại sáng lên khi rê chuột vào."),
+  image("ttt_score.png", 250, 297, "Bảng điểm hai bên và nút bấm"),
   p("Các ảnh trên được sinh tự động bằng chế độ chạy không hiển thị cửa sổ (SDL_VIDEODRIVER=dummy) trong tệp selftest.py, nên việc kiểm thử không cần thao tác chuột thật."),
 
   h1("5. Kiểm thử"),

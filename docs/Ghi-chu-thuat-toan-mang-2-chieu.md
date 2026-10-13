@@ -106,22 +106,40 @@ def is_full(board):                          # tictactoe.py:69
 Sau khi có kết quả (thắng hoặc hòa) phải gán `self.over = True`. Nếu quên,
 người chơi vẫn đặt được quân lên ván đã xong và trạng thái hiển thị bị sai.
 
-### 3.5. Điều kiện bắt đầu lại
+### 3.5. Điều kiện cộng điểm
 
-Nhấn phím `R` gọi `reset()`: tạo lại bàn cờ rỗng, `player` về `"X"`, xoá
-`over`, `winner`, `win_line`, `moves` về giá trị ban đầu.
+Điểm chỉ được cộng đúng một lần, ngay tại thời điểm phát sinh kết quả:
+
+| Kết quả ván | Cập nhật |
+|---|---|
+| Có người thắng | `self.wins[self.player] += 1` |
+| Bàn đầy mà không ai thắng | `self.draws += 1` |
+
+Bảng điểm nằm ngoài ván đang chơi, nên `reset()` (nút **Chơi lại** và phím `R`)
+chỉ tạo lại bàn cờ mà **không** đụng tới `wins` và `draws`. Muốn xóa hẳn thì gọi
+`reset_scores()`, nút **Xóa điểm** gọi hàm này.
+
+Điều kiện sáng khung người đang đi là đang tới lượt bên đó **và** ván chưa kết
+thúc; khi ván xong thì cả hai thẻ cùng mờ đi vì không còn ai đi nữa.
+
+### 3.6. Điều kiện bắt đầu lại
+
+Nhấn phím `R` hoặc bấm nút **Chơi lại** đều gọi `reset()`: tạo lại bàn cờ rỗng,
+`player` về `"X"`, xoá `over`, `winner`, `win_line`, `moves` về giá trị ban đầu,
+**giữ nguyên** `wins` và `draws`.
 
 ## 4. Bảng điều kiện tổng hợp
 
-| Tình huống | `over` | `winner` | `win_line` | Hành động tiếp |
-|---|---|---|---|---|
-| Vừa khởi tạo | False | `""` | None | Chờ click |
-| Đã đi vài nước, chưa ai thắng | False | `""` | None | Chờ click |
-| X vừa kín 1 đường | True | `"X"` | Bộ 3 ô thắng | Tô sáng, khoá bàn |
-| 9 ô đầy, không ai thắng | True | `""` | None | Báo hoà |
-| Click ô đã có quân | không đổi | không đổi | không đổi | Bỏ qua, không đổi lượt |
-| Click ngoài bàn cờ | không đổi | không đổi | không đổi | Bỏ qua |
-| Nhấn `R` | False | `""` | None | `moves = 0`, X đi trước |
+| Tình huống | `over` | `winner` | `win_line` | Điểm | Hành động tiếp |
+|---|---|---|---|---|---|
+| Vừa khởi tạo | False | `""` | None | 0 | Chờ click |
+| Đã đi vài nước, chưa ai thắng | False | `""` | None | 0 | Chờ click |
+| X vừa kín 1 đường | True | `"X"` | Bộ 3 ô thắng | `wins[X] += 1` | Tô sáng, khoá bàn |
+| 9 ô đầy, không ai thắng | True | `""` | None | `draws += 1` | Báo hoà |
+| Click ô đã có quân | không đổi | không đổi | không đổi | không đổi | Bỏ qua, không đổi lượt |
+| Click ngoài bàn cờ | không đổi | không đổi | không đổi | không đổi | Bỏ qua |
+| Bấm **Chơi lại** hoặc `R` | False | `""` | None | **giữ nguyên** | `moves = 0`, X đi trước |
+| Bấm **Xóa điểm** | False | `""` | None | về 0 | Xoá cả bảng điểm |
 
 ## 5. Độ phức tạp
 
