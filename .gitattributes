@@ -1,0 +1,13 @@
+* text=auto
+
+# Mã nguồn: luôn LF trong repo, Windows tự đổi khi checkout
+*.py text eol=lf
+*.js text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.ps1 text eol=crlf
+
+# Tệp nhị phân
+*.docx binary
+*.png binary
+*.exe binary

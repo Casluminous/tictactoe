@@ -1,0 +1,3 @@
+# Bài 8 (Tic-Tac-Toe pygame) cần pygame. Bộ mã nguồn TFTP chỉ dùng thư viện chuẩn.
+# Lưu ý: pygame chưa có wheel cho Python 3.14 - dùng Python 3.13.
+pygame>=2.6,<3 ; python_version < "3.14"

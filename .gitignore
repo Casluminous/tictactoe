@@ -1,0 +1,27 @@
+# Moi truong ao
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# PyInstaller: build lai bang build_exe.ps1
+build/
+dist/
+*.spec
+
+# File phat sinh khi chay demo TFTP
+client_root/*
+!client_root/.gitkeep
+server_root/up_*
+server_root/exe_*
+*.log
+docs/preview/
+tmp_unpack/
+
+# IDE
+.vscode/
+.idea/
