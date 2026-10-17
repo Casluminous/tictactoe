@@ -43,7 +43,6 @@ uv pip install --python .venv\Scripts\python.exe -r requirements.txt
 | Chuột trái trên ô bàn cờ | Đặt quân X hoặc O vào ô đang trống |
 | Nút **Chơi lại** | Ván mới, giữ nguyên bảng điểm |
 | Nút **Xóa điểm** | Xoá ván và đưa bảng điểm về 0 |
-| Phím `R` | Chơi lại (giống nút Chơi lại) |
 | Phím `ESC` hoặc `Q` | Thoát |
 
 ## Giao diện
@@ -64,7 +63,6 @@ Bố cục lấy theo mẫu tham khảo: nền vàng, khung màn hình trắng v
 5. **Tô sáng đường thắng** bằng `pygame.draw.line` nối tâm hai ô đầu cuối.
 6. **Cộng điểm** ngay khi phát sinh kết quả: người thắng `wins[player] += 1`, ván hòa thì `draws += 1`.
 7. **Nút bấm** là hai `pygame.Rect` cố định; khi rê chuột vào nút thì bàn cờ không tô ô, khi bấm vào thì gọi `reset()` hoặc `reset_scores()` tương ứng.
-8. **Nhấn R** cũng gọi `reset()`, giữ nguyên bảng điểm.
 
 Chi tiết điều kiện, độ phức tạp và các lỗi hay gặp nằm trong `docs/Ghi-chu-thuat-toan-mang-2-chieu.md`.
 
@@ -87,7 +85,7 @@ Chi tiết điều kiện, độ phức tạp và các lỗi hay gặp nằm tro
 .venv\Scripts\python.exe selftest.py
 ```
 
-Chạy ở chế độ không hiển thị cửa sổ (`SDL_VIDEODRIVER=dummy`), kiểm tra: bàn cờ mới rỗng, cả 8 đường thắng, bàn đầy thì hòa, click ô đã có quân hoặc ngoài bàn, khoá ván sau khi có kết quả, cộng điểm đúng cho mỗi lần thắng/hòa, nút Chơi lại giữ điểm, nút Xóa điểm trả bảng điểm về 0, hiệu ứng rê chuột trên ô và trên nút, phím `R` và `ESC`. Đồng thời sinh lại 4 ảnh trong `docs/img/`.
+Chạy ở chế độ không hiển thị cửa sổ (`SDL_VIDEODRIVER=dummy`), kiểm tra: bàn cờ mới rỗng, cả 8 đường thắng, bàn đầy thì hòa, click ô đã có quân hoặc ngoài bàn, khoá ván sau khi có kết quả, cộng điểm đúng cho mỗi lần thắng/hòa, nút Chơi lại giữ điểm, nút Xóa điểm trả bảng điểm về 0, hiệu ứng rê chuột trên ô và trên nút, phím `ESC`. Đồng thời sinh lại 4 ảnh trong `docs/img/`.
 
 ## Đóng gói lại thành exe
 

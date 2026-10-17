@@ -115,18 +115,14 @@ người chơi vẫn đặt được quân lên ván đã xong và trạng thái
 | Có người thắng | `self.wins[self.player] += 1` |
 | Bàn đầy mà không ai thắng | `self.draws += 1` |
 
-Bảng điểm nằm ngoài ván đang chơi, nên `reset()` (nút **Chơi lại** và phím `R`)
-chỉ tạo lại bàn cờ mà **không** đụng tới `wins` và `draws`. Muốn xóa hẳn thì gọi
-`reset_scores()`, nút **Xóa điểm** gọi hàm này.
+Bảng điểm nằm ngoài ván đang chơi, nên `reset()` (nút **Chơi lại**) chỉ tạo lại bàn cờ mà **không** đụng tới `wins` và `draws`. Muốn xóa hẳn thì gọi `reset_scores()`, nút **Xóa điểm** gọi hàm này.
 
 Điều kiện sáng khung người đang đi là đang tới lượt bên đó **và** ván chưa kết
 thúc; khi ván xong thì cả hai thẻ cùng mờ đi vì không còn ai đi nữa.
 
 ### 3.6. Điều kiện bắt đầu lại
 
-Nhấn phím `R` hoặc bấm nút **Chơi lại** đều gọi `reset()`: tạo lại bàn cờ rỗng,
-`player` về `"X"`, xoá `over`, `winner`, `win_line`, `moves` về giá trị ban đầu,
-**giữ nguyên** `wins` và `draws`.
+Bấm nút **Chơi lại** gọi `reset()`: tạo lại bàn cờ rỗng, `player` về `"X"`, xoá `over`, `winner`, `win_line`, `moves` về giá trị ban đầu, **giữ nguyên** `wins` và `draws`.
 
 ## 4. Bảng điều kiện tổng hợp
 
@@ -138,7 +134,7 @@ Nhấn phím `R` hoặc bấm nút **Chơi lại** đều gọi `reset()`: tạo
 | 9 ô đầy, không ai thắng | True | `""` | None | `draws += 1` | Báo hoà |
 | Click ô đã có quân | không đổi | không đổi | không đổi | không đổi | Bỏ qua, không đổi lượt |
 | Click ngoài bàn cờ | không đổi | không đổi | không đổi | không đổi | Bỏ qua |
-| Bấm **Chơi lại** hoặc `R` | False | `""` | None | **giữ nguyên** | `moves = 0`, X đi trước |
+| Bấm **Chơi lại** | False | `""` | None | **giữ nguyên** | `moves = 0`, X đi trước |
 | Bấm **Xóa điểm** | False | `""` | None | về 0 | Xoá cả bảng điểm |
 
 ## 5. Độ phức tạp

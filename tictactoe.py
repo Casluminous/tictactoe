@@ -194,9 +194,7 @@ class TicTacToe:
         if event.type == pygame.QUIT:
             return False
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_r:  # K_r nhận cả khi bấm R viết hoa
-                self.reset()
-            elif event.key in (pygame.K_ESCAPE, pygame.K_q):
+            if event.key in (pygame.K_ESCAPE, pygame.K_q):
                 return False
         elif event.type == pygame.MOUSEMOTION:
             self.hover_button = self._button_at(event.pos)
@@ -307,7 +305,7 @@ class TicTacToe:
             draw_win_line(self.screen, self.win_line)
 
         self._text("status", self.status(), INK, (WINDOW_W // 2, STATUS_Y))
-        self._text("hint", f"HÒA {self.draws}   •   R: CHƠI LẠI   •   ESC: THOÁT",
+        self._text("hint", f"HÒA {self.draws}   •   ESC: THOÁT",
                    DIM_TEXT, (WINDOW_W // 2, STATUS_Y + 48))
         self._button(self.btn_play, "CHƠI LẠI")
         self._button(self.btn_clear, "XÓA ĐIỂM")

@@ -83,15 +83,14 @@ def check_flow() -> None:
     assert game.board == ttt.new_board() and not game.over and game.moves == 0
     assert game.wins[ttt.X] == 1, "bấm nút chơi lại không được xoá điểm"
 
-    # Phím R cũng cho lại mà vẫn giữ điểm
+    # Vòng thứ hai: X thắng tiếp nên điểm cộng dồn
     play_moves(game, [(0, 0), (1, 1), (0, 1), (2, 1), (0, 2)])
-    assert game.wins[ttt.X] == 2
-    game.handle_event(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_r, mod=0, unicode="r"))
-    assert not game.over and game.wins[ttt.X] == 2
+    assert game.over and game.wins[ttt.X] == 2
 
     # Click trúng nút thì không được coi là click vào ô bàn cờ
     click(game, game.btn_play.center)
-    assert game.moves == 0 and game.board == ttt.new_board()
+    assert game.moves == 0 and game.board == ttt.new_board() and not game.over
+    assert game.wins[ttt.X] == 2, "bấm nút chơi lại không được xoá điểm"
 
     # Vòng hòa: X O X / X O O / O X X
     play_moves(game, [(0, 0), (0, 1), (0, 2), (1, 1), (1, 0), (1, 2), (2, 1), (2, 0), (2, 2)])
@@ -106,7 +105,7 @@ def check_flow() -> None:
     assert not game.handle_event(
         pygame.event.Event(pygame.KEYDOWN, key=pygame.K_ESCAPE, mod=0, unicode="\x1b"))
     pygame.quit()
-    print("OK  flow: click hợp lệ / thắng / hòa / khoá ván / nút bấm / R / xoá điểm / ESC")
+    print("OK  flow: click hợp lệ / thắng / hòa / khoá ván / nút bấm / xoá điểm / ESC")
 
 
 def check_highlight() -> None:
